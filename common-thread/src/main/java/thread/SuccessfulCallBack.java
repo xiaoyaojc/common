@@ -7,7 +7,5 @@ import com.google.common.util.concurrent.FutureCallback;
  */
 public interface SuccessfulCallBack<V> extends FutureCallback<V>{
 
-    default void onFailure(Throwable throwable) {
-        //doNoting
-    }
+    default void onFailure(Throwable throwable) {}
 }

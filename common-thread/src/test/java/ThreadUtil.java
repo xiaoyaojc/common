@@ -16,22 +16,21 @@ public class ThreadUtil {
         String s1="wdwdwdwdwsss";
         String s2="sdwwdwdw";
         FutureCallback callback= (SuccessfulCallBack) o -> System.out.println("success");
-        Long times=10000L;
+        Long times=100L;
         List<TaskFunction> taskFunctionList=new ArrayList<>();
         for(int i=0;i<times;i++) {
             taskFunctionList.add(() -> s1.length());
             taskFunctionList.add(() -> s2.length());
-            taskFunctionList.add(() -> null);
-
+            taskFunctionList.add(() -> new Test().getValue("dwdww"));
         }
         TaskRequest taskRequest=new TaskRequest(taskFunctionList,callback);
         ThreadPool threadPool=new ThreadPool();
         threadPool.initialize();
-        List result=threadPool.execute(taskRequest);
+        List result=threadPool.submit(taskRequest);
         Long start=System.currentTimeMillis();
         for(int i=0;i<times;i++) {
-            System.out.println(result.get(i*3));
-            System.out.println(result.get(i*3+1));
+            System.out.println(result.get(i * 3));
+            System.out.println(result.get(i * 3 + 1));
             System.out.println(result.get(i*3+2));
         }
         System.out.println(System.currentTimeMillis()-start);

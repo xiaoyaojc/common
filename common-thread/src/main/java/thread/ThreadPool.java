@@ -90,9 +90,9 @@ public class ThreadPool {
      *
      * @param taskRequest
      */
-    public <V> List<V> execute(final TaskRequest taskRequest) {
+    public <V> List<V> submit(final TaskRequest taskRequest) {
         long threadProcessTimeout = DEFAULT_THREAD_PROCESS_TIME_OUT;
-        return execute(taskRequest, threadProcessTimeout);
+        return submit(taskRequest, threadProcessTimeout);
     }
 
     /**
@@ -101,7 +101,7 @@ public class ThreadPool {
      * @param taskRequest
      * @param
      */
-    public <V> List<V> execute(final TaskRequest taskRequest, long threadProcessTimeout) {
+    public <V> List<V> submit(final TaskRequest taskRequest, long threadProcessTimeout) {
         if (logger.isInfoEnabled()) {
             logger.info("Try to parallel process Parallel process task count :" + taskRequest.getTaskCount());
         }
@@ -131,7 +131,9 @@ public class ThreadPool {
             futureList.add(futureTaskResult);
         }
         ListenableFuture<List<V>> successfulFuture=Futures.successfulAsList(futureList);
-        Futures.addCallback(successfulFuture,taskRequest.getCallback());
+        if(taskRequest.getCallback()!=null) {
+            Futures.addCallback(successfulFuture, taskRequest.getCallback());
+        }
         try {
             latch.await(threadProcessTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
