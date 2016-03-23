@@ -1,4 +1,5 @@
 import com.google.common.util.concurrent.FutureCallback;
+import thread.SuccessfulCallBack;
 import thread.TaskFunction;
 import thread.TaskRequest;
 import thread.ThreadPool;
@@ -14,17 +15,7 @@ public class ThreadUtil {
     public static void main(String[] args) {
         String s1="wdwdwdwdwsss";
         String s2="sdwwdwdw";
-        FutureCallback callback=new FutureCallback() {
-            @Override
-            public void onSuccess(Object o) {
-                System.out.println("success");
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                System.out.println("fail");
-            }
-        };
+        FutureCallback callback= (SuccessfulCallBack) o -> System.out.println("success");
         Long times=10000L;
         List<TaskFunction> taskFunctionList=new ArrayList<>();
         for(int i=0;i<times;i++) {
