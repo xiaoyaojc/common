@@ -135,6 +135,12 @@
                 <artifactId>spring-security-core</artifactId>
                 <version>4.0.3.RELEASE</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>19.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

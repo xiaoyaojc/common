@@ -1,5 +1,9 @@
 package thread;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,10 +23,6 @@ public class ThreadPool {
 
     private static Logger logger = LoggerFactory.getLogger(ThreadPool.class);
 
-    /**
-     *
-     */
-    private ThreadPoolExecutor service;
 
     public static final int DEFAULT_MIN_THREAD_COUNT = 16;
 
@@ -66,12 +66,17 @@ public class ThreadPool {
 
     private ThreadFactory threadFactory;
 
+    private ThreadPoolExecutor threadPoolExecutor;
+
+    private ListeningExecutorService service;
+
     @PostConstruct
     public void initialize() {
         workQueue = new ArrayBlockingQueue(queueSize);
         threadFactory = new NamedThreadFactory("Parallel-Processor", null, true);
         handler = new ThreadPoolExecutor.CallerRunsPolicy();
-        service=new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, workQueue, threadFactory, handler);
+        threadPoolExecutor=new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, workQueue, threadFactory, handler);
+        service= MoreExecutors.listeningDecorator(threadPoolExecutor);
     }
 
     @PreDestroy
@@ -100,14 +105,12 @@ public class ThreadPool {
         if (logger.isInfoEnabled()) {
             logger.info("Try to parallel process Parallel process task count :" + taskRequest.getTaskCount());
         }
-        final List taskResultList = new ArrayList(taskRequest.getTaskCount());
-
         final CountDownLatch latch = new CountDownLatch(taskRequest.getTaskCount());
 
-        List<Future> futureList = new ArrayList(taskRequest.getTaskCount());
+        List<ListenableFuture<V>> futureList = new ArrayList(taskRequest.getTaskCount());
         for (int i = 0; i < taskRequest.getTaskCount(); i++) {
             final int index = i;
-            Future<V> futureTaskResult = service.submit(() -> {
+            ListenableFuture<V> futureTaskResult = service.submit(() -> {
                 V result = null;
                 try {
                     long startTime = System.currentTimeMillis();
@@ -127,106 +130,24 @@ public class ThreadPool {
             });
             futureList.add(futureTaskResult);
         }
-
+        ListenableFuture<List<V>> successfulFuture=Futures.successfulAsList(futureList);
+        Futures.addCallback(successfulFuture,taskRequest.getCallback());
         try {
             latch.await(threadProcessTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             logger.error("latch.await parallel process failed, maybe timeout:", e);
         }
-
-        for (Future<V> future : futureList) {
-            try {
-                V result = future.get(1L, TimeUnit.MILLISECONDS);
-                if (null != result) {
-                    taskResultList.add(result);
-                }
-            } catch (Exception e) {
-                logger.error("thread pool get result exception:", e);
-                if (future.cancel(true)) {
-                    logger.warn("task execution time out, thread pool cancel task success!");
-                } else {
-                    logger.error("thread pool cancel task failed!");
-                }
+        final List taskResultList=new ArrayList<>(taskRequest.getTaskCount());
+        try {
+            taskResultList.addAll(successfulFuture.get(1L, TimeUnit.MILLISECONDS));
+        } catch (Exception e) {
+            logger.error("thread pool get result exception:", e);
+            if (successfulFuture.cancel(true)) {
+                logger.warn("task execution time out, thread pool cancel task success!");
+            } else {
+                logger.error("thread pool cancel task failed!");
             }
         }
-
         return taskResultList;
-    }
-
-    /**
-     * 提交并发请求，返回结果为Map，key为taskFunction，value为执行结果
-     *
-     * @param taskRequest
-     */
-    public Map<TaskFunction, Object> executeQuery(final TaskRequest taskRequest) {
-        long threadProcessTimeout = DEFAULT_THREAD_PROCESS_TIME_OUT;
-        return executeQuery(taskRequest, threadProcessTimeout);
-    }
-
-    /**
-     * 提交并发请求，返回值为执行结果的Map，key为taskFunction，value为执行结果
-     * ps.如果task只有参数值不同，那么Map会被覆盖。
-     *
-     * @param taskRequest
-     */
-    public Map<TaskFunction, Object> executeQuery(final TaskRequest taskRequest, long threadProcessTimeout) {
-        if (logger.isInfoEnabled()) {
-            logger.info("Try to parallel process Parallel process task count :" + taskRequest.getTaskCount());
-        }
-        final Map taskResultMap = new ConcurrentHashMap(taskRequest.getTaskCount());
-
-        final CountDownLatch latch = new CountDownLatch(taskRequest.getTaskCount());
-
-        List<Future> futureList = new ArrayList(taskRequest.getTaskCount());
-        for (int i = 0; i < taskRequest.getTaskCount(); i++) {
-            final int index = i;
-            Future futureTaskResult = service.submit(() -> {
-                Map<TaskFunction, Object> resultMap = new ConcurrentHashMap();
-                try {
-                    long startTime = System.currentTimeMillis();
-                    TaskFunction<Object> taskFunction = taskRequest.getTaskList().get(index);
-                    Object result = taskFunction.apply();
-                    if (result != null) {
-                        resultMap.put(taskFunction, result);
-                    }
-                    long endTime = System.currentTimeMillis();
-                    if (logger.isInfoEnabled()) {
-                        logger.info("Try to parallel process Parallel process task totalTime :" + (endTime - startTime));
-                    }
-                    return resultMap;
-                } catch (Throwable e) {
-                    logger.error("thread pool process future task failed:", e);
-                    return resultMap;
-                } finally {
-                    latch.countDown();
-                }
-            });
-            futureList.add(futureTaskResult);
-        }
-
-        try {
-            latch.await(threadProcessTimeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            logger.error("latch.await parallel process failed, maybe timeout:", e);
-        }
-
-        for (Future future : futureList) {
-            try {
-                Object result = future.get(1L, TimeUnit.MILLISECONDS);
-                if (null != result) {
-                    Map resultMap = (Map) result;
-                    taskResultMap.putAll(resultMap);
-                }
-            } catch (Exception e) {
-                logger.error("thread pool get result exception:", e);
-                if (future.cancel(true)) {
-                    logger.warn("task execution time out, thread pool cancel task success!");
-                } else {
-                    logger.error("thread pool cancel task failed!");
-                }
-            }
-        }
-
-        return taskResultMap;
     }
 }
