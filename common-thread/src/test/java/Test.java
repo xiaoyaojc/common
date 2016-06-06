@@ -1,0 +1,10 @@
+import java.lang.reflect.InvocationTargetException;
+
+/**
+ * Created by jincong on 16/3/23.
+ */
+public class Test {
+    public int getValue(String str){
+        return str.length();
+    }
+}
