@@ -5,6 +5,6 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class Test {
     public int getValue(String str){
-        return str.length();
+        throw new RuntimeException();
     }
 }

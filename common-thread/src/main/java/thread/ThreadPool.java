@@ -126,28 +126,29 @@ public class ThreadPool {
                     return result;
                 } catch (Throwable e) {
                     logger.error("thread pool process future task failed:", e);
-                    return result;
+                    throw new RuntimeException();
                 } finally {
                     latch.countDown();//计数器减一
                 }
             });
             futureList.add(futureTaskResult);
         }
-        ListenableFuture<List<V>> successfulFuture=Futures.successfulAsList(futureList);
+        ListenableFuture<List<V>> finalFutrue=
+                taskRequest.getIngoreError()?Futures.successfulAsList(futureList):Futures.allAsList(futureList);
         if (taskRequest.getCallback() != null) {
-            Futures.addCallback(successfulFuture, taskRequest.getCallback());
+            Futures.addCallback(finalFutrue, taskRequest.getCallback());
         }
         try {
             latch.await(threadProcessTimeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             logger.error("latch.await parallel process failed, maybe timeout:", e);
         }
-        final List taskResultList = new ArrayList<>(taskRequest.getTaskCount());
+        List<V> taskResultList = new ArrayList<>(taskRequest.getTaskCount());
         try {
-            taskResultList.addAll(successfulFuture.get(DEFAULT_FUTURE_GET_TIME_OUT, TimeUnit.MILLISECONDS));
+            taskResultList=finalFutrue.get(DEFAULT_FUTURE_GET_TIME_OUT, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             logger.error("thread pool get result exception:", e);
-            if (successfulFuture.cancel(true)) {
+            if (finalFutrue.cancel(true)) {
                 logger.warn("task execution time out, thread pool cancel task success!");
             } else {
                 logger.error("thread pool cancel task failed!");

@@ -26,14 +26,34 @@ public class TaskRequest implements Serializable{
      */
     private FutureCallback callback;
 
+    /**
+     * 失败策略，是否忽略error
+     */
+    private boolean ingoreError;
+
     public TaskRequest(List<TaskFunction> taskList){
         this.taskList = taskList;
         this.taskCount = taskList.size();
+        this.ingoreError=true;
     }
 
     public TaskRequest(List<TaskFunction> taskList,FutureCallback callback){
         this.taskList = taskList;
         this.taskCount = taskList.size();
+        this.callback=callback;
+        this.ingoreError=true;
+    }
+
+    public TaskRequest(List<TaskFunction> taskList,Boolean ingoreError){
+        this.taskList = taskList;
+        this.taskCount = taskList.size();
+        this.ingoreError=ingoreError;
+    }
+
+    public TaskRequest(List<TaskFunction> taskList,Boolean ingoreError,FutureCallback callback){
+        this.taskList = taskList;
+        this.taskCount = taskList.size();
+        this.ingoreError=ingoreError;
         this.callback=callback;
     }
 
@@ -48,5 +68,9 @@ public class TaskRequest implements Serializable{
 
     public FutureCallback getCallback() {
         return callback;
+    }
+
+    public Boolean getIngoreError() {
+        return ingoreError;
     }
 }
