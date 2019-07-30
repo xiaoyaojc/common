@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/common.iml" filepath="$PROJECT_DIR$/common.iml" />
-      <module fileurl="file://$PROJECT_DIR$/common-parent/common-parent.iml" filepath="$PROJECT_DIR$/common-parent/common-parent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/common-thread/common-thread.iml" filepath="$PROJECT_DIR$/common-thread/common-thread.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common/common-thread/common-thread.iml" filepath="$PROJECT_DIR$/common/common-thread/common-thread.iml" />
     </modules>
   </component>
 </project>

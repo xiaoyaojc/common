@@ -1,4 +1,4 @@
-package task;
+package com.xiaoyao.task;
 
 
 import com.google.common.util.concurrent.FutureCallback;
@@ -7,7 +7,9 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Created by jincong on 16/3/14.
+ *
+ * @author jincong
+ * @date 16/3/14
  */
 public class TaskRequest implements Serializable{
 
@@ -29,31 +31,31 @@ public class TaskRequest implements Serializable{
     /**
      * 失败策略，是否忽略error
      */
-    private boolean ingoreError;
+    private boolean ignoreError;
 
     public TaskRequest(List<TaskFunction> taskList){
         this.taskList = taskList;
         this.taskCount = taskList.size();
-        this.ingoreError=true;
+        this.ignoreError =true;
     }
 
     public TaskRequest(List<TaskFunction> taskList,FutureCallback callback){
         this.taskList = taskList;
         this.taskCount = taskList.size();
         this.callback=callback;
-        this.ingoreError=true;
+        this.ignoreError =true;
     }
 
-    public TaskRequest(List<TaskFunction> taskList,Boolean ingoreError){
+    public TaskRequest(List<TaskFunction> taskList,Boolean ignoreError){
         this.taskList = taskList;
         this.taskCount = taskList.size();
-        this.ingoreError=ingoreError;
+        this.ignoreError = ignoreError;
     }
 
-    public TaskRequest(List<TaskFunction> taskList,Boolean ingoreError,FutureCallback callback){
+    public TaskRequest(List<TaskFunction> taskList, Boolean ignoreError, FutureCallback callback){
         this.taskList = taskList;
         this.taskCount = taskList.size();
-        this.ingoreError=ingoreError;
+        this.ignoreError = ignoreError;
         this.callback=callback;
     }
 
@@ -70,7 +72,7 @@ public class TaskRequest implements Serializable{
         return callback;
     }
 
-    public Boolean getIngoreError() {
-        return ingoreError;
+    public Boolean getIgnoreError() {
+        return ignoreError;
     }
 }

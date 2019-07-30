@@ -2,13 +2,15 @@
  * app center
  * util
  */
-package thread;
+package com.xiaoyao.thread;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by jincong on 16/3/14.
+ *
+ * @author jincong
+ * @date 16/3/14
  */
 public class NamedThreadFactory implements ThreadFactory {
 

@@ -1,5 +1,3 @@
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * Created by jincong on 16/3/23.
  */
